@@ -2,7 +2,8 @@ import { Deployer } from "@solarity/hardhat-migrate";
 
 import { ApiResponseError } from "node-vault";
 
-import { AllowedContractRegistry__factory } from "@/generated-types/ethers";
+import { AllowedContractRegistry__factory, MasterContractsRegistry__factory } from "@/generated-types/ethers";
+import { getConfigJsonFromVault } from "./config/config-getter";
 
 export = async (deployer: Deployer) => {
   const vault = require("node-vault")({
@@ -11,16 +12,19 @@ export = async (deployer: Deployer) => {
     token: process.env.VAULT_TOKEN,
   });
 
-  const registry = await deployer.deployed(AllowedContractRegistry__factory, "AllowedContractRegistry");
+  let config = await getConfigJsonFromVault();
+  const registry = await deployer.deployed(MasterContractsRegistry__factory, config.addresses.MasterContractsRegistry);
 
-  const config = {
+  const allowedContractRegistry = await registry.getContract("AllowedContractRegistry");
+
+  const configVault = {
     addresses: {
-      AllowedContractRegistry: await registry.getAddress(),
+      AllowedContractRegistry: allowedContractRegistry,
     },
   };
 
   try {
-    await vault.write(process.env.VAULT_UPLOAD_CONFIG_PATH, { data: config });
+    await vault.write(process.env.VAULT_UPLOAD_CONFIG_PATH, { data: configVault });
   } catch (error) {
     if ((error as ApiResponseError).response) {
       console.log((error as ApiResponseError).response.body.errors);
