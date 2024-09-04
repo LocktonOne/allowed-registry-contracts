@@ -15,7 +15,7 @@ export = async (deployer: Deployer) => {
   let config = await getConfigJsonFromVault();
   const registry = await deployer.deployed(MasterContractsRegistry__factory, config.addresses.MasterContractsRegistry);
 
-  const allowedContractRegistry = await registry.getContract("AllowedContractRegistry");
+  const allowedContractRegistry = await registry.getContract("ALLOWED_CONTRACT_REGISTRY");
 
   const configVault = {
     addresses: {
